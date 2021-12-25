@@ -8,8 +8,12 @@ export function getFilePath(name: string, document: TextDocument): Uri|null {
     let workspaceFolder = workspace.getWorkspaceFolder(document.uri)?.uri.fsPath || '';
     let filePath = path.join(workspaceFolder, 'templates' ,name);
 
-    if (fs.statSync(filePath)) {
-        return Uri.file(filePath);
+    try {
+        if (fs.statSync(filePath)) {
+            return Uri.file(filePath);
+        }
+    } catch(err) {
+        console.error(err);
     }
 
     return null;
