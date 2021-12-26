@@ -14,7 +14,7 @@ export default class LinkProvider implements vsDocumentLinkProvider {
     public provideDocumentLinks(doc: TextDocument): ProviderResult<DocumentLink[]> {
         let documentLinks = [];
 
-        let reg = /'(?<template>.*\.twig)'/;
+        let reg = /['"](?<template>[^"']+\.twig)['"]/;
 
         for (let index = 0; index < doc.lineCount; index++) {
             let line = doc.lineAt(index);

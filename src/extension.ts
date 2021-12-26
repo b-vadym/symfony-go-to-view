@@ -8,7 +8,7 @@ import LinkProvider from './provider/linkProvider';
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "symfony-go-to-twig" is now active!');
 
-    let link = vscode.languages.registerDocumentLinkProvider(['php', 'twig'], new LinkProvider());
+    const link = vscode.languages.registerDocumentLinkProvider(['php', 'twig'], new LinkProvider());
 
     context.subscriptions.push(link);
 }
