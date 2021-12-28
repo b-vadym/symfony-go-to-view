@@ -6,12 +6,20 @@ import {
     ProviderResult,
     DocumentLink,
     Position,
-    Range
+    Range,
+    workspace
 } from "vscode";
 import * as util from '../utils';
 
 export default class LinkProvider implements vsDocumentLinkProvider {
     public provideDocumentLinks(doc: TextDocument): ProviderResult<DocumentLink[]> {
+
+        let config = workspace.getConfiguration('symfony_go_to_view');
+
+        if (!config.quickJump) {
+            return [];
+        }
+
         let documentLinks = [];
 
         let reg = /['"](?<template>[^"']+\.twig)['"]/;

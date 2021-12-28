@@ -15,12 +15,27 @@
     ],
     "main": "./out/extension.js",
     "contributes": {
-        "commands": [
-            {
-                "command": "symfony-go-to-twig.helloWorld",
-                "title": "Hello World"
+        "configuration":{
+            "title": "symfony-go-to-twig configuration",
+            "properties": {
+                "symfony_go_to_view.quickJump": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Use 'Ctrl' or 'Alt' + click"
+                },
+                "symfony_go_to_view.loader_paths": {
+                    "type": "object",
+                    "properties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "default": {"(None)": ["templates"]},
+                    "description": "Twig loader paths(output of symfony command debug:twig --format=json loader_paths key)"
+                }
             }
-        ]
+        }
     },
     "scripts": {
         "vscode:prepublish": "yarn run compile",

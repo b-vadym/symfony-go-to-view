@@ -3,80 +3,40 @@
 import { workspace, TextDocument, Uri, ExtensionContext, WorkspaceConfiguration, OverviewRulerLane } from 'vscode';
 import * as fs from "fs";
 import * as path from "path";
+import { join } from 'path';
 
 export function getFilePath(name: string, document: TextDocument): Uri | null {
     let workspaceFolder = workspace.getWorkspaceFolder(document.uri)?.uri.fsPath || '';
-    let reg = /^@(?<bundle>[^\/]+)\/(?<templatePath>.*)$/;
-    let result = reg.exec(name);
+    let namespace = "(None)";
+    let subPath = name;
 
-    let bundleName = result?.groups?.bundle;
-    let bundleTemplatePath = result?.groups?.templatePath;
+    if (name.startsWith('@')) {
+        const result = name.split(/\/(.*)$/);
+        if(!result) {
+            return null;
+        }
 
-    if (bundleName && bundleTemplatePath) {
-        return getBundleTemplateUri(workspaceFolder, bundleName, bundleTemplatePath);
+        namespace = result[0];
+        subPath = result[1];
     }
 
-    let filePath = path.join(workspaceFolder, 'templates', name);
+    const twigLoaderPaths = workspace.getConfiguration('symfony_go_to_view.loader_paths');
+    const paths = twigLoaderPaths[namespace];
 
-    if (pathExist(filePath)) {
-        return Uri.file(filePath);
+    if (paths === undefined) {
+        return null;
+    }
+
+
+    for (let index = 0; index <= paths.length; index++) {
+        let absolutePath = path.join(workspaceFolder, paths[index], subPath);
+
+        if (pathExist(absolutePath)) {
+            return Uri.file(absolutePath);
+        }
     }
 
     return null;
-}
-
-function getBundleTemplateUri(workspaceFolder: string, bundleName: string, bundleTemplateName: string): Uri | null {
-    let files: (Uri | null)[] = [];
-    // override vendor
-    const overrideTemplate = path.join(workspaceFolder, 'templates/' + bundleName + 'Bundle', bundleTemplateName);
-
-    if (pathExist(overrideTemplate)) {
-        return Uri.file(overrideTemplate);
-    }
-
-    // vendor
-    const bundleClassName = bundleName + 'Bundle.php';
-    const vendorPath = path.join(workspaceFolder, 'vendor');
-
-    if (pathExist(vendorPath)) {
-        fs.readdirSync(vendorPath).forEach(element => {
-            const vendorBaseDir = path.join(vendorPath, element);
-
-            if (!fs.statSync(vendorBaseDir).isDirectory()) {
-                return;
-            }
-
-            fs.readdirSync(vendorBaseDir).forEach(element => {
-                const packageDir = path.join(vendorBaseDir, element);
-
-                if (!fs.statSync(packageDir).isDirectory()) {
-                    return;
-                }
-
-
-                let bundlePathInPackageRoot = path.join(packageDir, bundleClassName);
-                let bundlePathInSrcDir = path.join(packageDir, 'src', bundleClassName);
-
-                if (!pathExist(bundlePathInPackageRoot) && !pathExist(bundlePathInSrcDir)) {
-                    return;
-                }
-
-                let inRootBundleTemplate = path.join(packageDir, 'templates', bundleTemplateName);
-
-                if (pathExist(inRootBundleTemplate)) {
-                    files.push(Uri.file(inRootBundleTemplate));
-                }
-
-                let inResourceTemplate = path.join(packageDir, 'src/Resources/view', bundleTemplateName);
-
-                if (pathExist(inResourceTemplate)) {
-                    files.push(Uri.file(inResourceTemplate));
-                }
-            });
-        });
-    }
-
-    return files.length > 0 ? files[0] : null;
 }
 
 function pathExist(path: string): boolean {
