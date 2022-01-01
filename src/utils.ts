@@ -1,18 +1,18 @@
 'use strict';
 
-import { workspace, TextDocument, Uri, ExtensionContext, WorkspaceConfiguration, OverviewRulerLane } from 'vscode';
+import { workspace, TextDocument, Uri } from 'vscode';
 import * as fs from "fs";
 import * as path from "path";
-import { join } from 'path';
 
 export function getFilePath(name: string, document: TextDocument): Uri | null {
-    let workspaceFolder = workspace.getWorkspaceFolder(document.uri)?.uri.fsPath || '';
+    const workspaceFolder = workspace.getWorkspaceFolder(document.uri)?.uri.fsPath || '';
     let namespace = "(None)";
     let subPath = name;
 
     if (name.startsWith('@')) {
         const result = name.split(/\/(.*)$/);
-        if(!result) {
+
+        if (!result) {
             return null;
         }
 
@@ -20,7 +20,7 @@ export function getFilePath(name: string, document: TextDocument): Uri | null {
         subPath = result[1];
     }
 
-    const twigLoaderPaths = workspace.getConfiguration('symfony_go_to_view.loader_paths');
+    const twigLoaderPaths = workspace.getConfiguration('symfony-go-to-view.loaderPaths');
     const paths = twigLoaderPaths[namespace];
 
     if (paths === undefined) {
@@ -29,7 +29,7 @@ export function getFilePath(name: string, document: TextDocument): Uri | null {
 
 
     for (let index = 0; index <= paths.length; index++) {
-        let absolutePath = path.join(workspaceFolder, paths[index], subPath);
+        const absolutePath = path.join(workspaceFolder, paths[index], subPath);
 
         if (pathExist(absolutePath)) {
             return Uri.file(absolutePath);

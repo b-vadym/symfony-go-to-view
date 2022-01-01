@@ -18,12 +18,12 @@
         "configuration":{
             "title": "symfony-go-to-twig configuration",
             "properties": {
-                "symfony_go_to_view.quickJump": {
+                "symfony-go-to-view.quickJump": {
                     "type": "boolean",
                     "default": true,
                     "description": "Use 'Ctrl' or 'Alt' + click"
                 },
-                "symfony_go_to_view.loader_paths": {
+                "symfony-go-to-view.loaderPaths": {
                     "type": "object",
                     "properties": {
                         "type": "array",
