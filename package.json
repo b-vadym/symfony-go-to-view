@@ -9,6 +9,7 @@
     "categories": [
         "Other"
     ],
+    "license": "SEE LICENSE IN LICENSE.md",
     "activationEvents": [
         "onLanguage:php",
         "onLanguage:twig"
