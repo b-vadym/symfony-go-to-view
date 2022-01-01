@@ -9,7 +9,11 @@
     "categories": [
         "Other"
     ],
+    "repository": {
+        "url": "https://github.com/b-vadym/symfony-go-to-view"
+    },
     "license": "SEE LICENSE IN LICENSE.md",
+    "publisher": "b-vadym",
     "activationEvents": [
         "onLanguage:php",
         "onLanguage:twig"
