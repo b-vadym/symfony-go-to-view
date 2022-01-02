@@ -4,7 +4,7 @@ import { workspace, TextDocument, Uri } from 'vscode';
 import * as fs from "fs";
 import * as path from "path";
 
-export function getFilePath(name: string, document: TextDocument): Uri | null {
+export async function getFilePath(name: string, document: TextDocument): Promise<Uri | null> {
     const workspaceFolder = workspace.getWorkspaceFolder(document.uri)?.uri.fsPath || '';
     let namespace = "(None)";
     let subPath = name;
@@ -27,11 +27,10 @@ export function getFilePath(name: string, document: TextDocument): Uri | null {
         return null;
     }
 
-
-    for (let index = 0; index <= paths.length; index++) {
+    for (let index = 0; index < paths.length; index++) {
         const absolutePath = path.join(workspaceFolder, paths[index], subPath);
 
-        if (pathExist(absolutePath)) {
+        if (await pathExist(absolutePath)) {
             return Uri.file(absolutePath);
         }
     }
@@ -39,13 +38,13 @@ export function getFilePath(name: string, document: TextDocument): Uri | null {
     return null;
 }
 
-function pathExist(path: string): boolean {
+async function pathExist(path: string): Promise<boolean> {
     try {
-        if (fs.statSync(path)) {
+        if (await fs.promises.stat(path)) {
             return true;
         }
     } catch (err) {
-        console.error(err);
+        // console.error(err);
     }
 
     return false;

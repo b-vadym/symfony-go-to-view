@@ -19,30 +19,32 @@ export default class LinkProvider implements vsDocumentLinkProvider {
             return [];
         }
 
-        const documentLinks = [];
-        const reg = /['"](?<template>[^"']+\.twig)['"]/;
+        return new Promise(async resolve => {
+            const reg = /['"](?<template>[^"']+\.twig)['"]/;
+            const documentLinks = [];
 
-        for (let index = 0; index < doc.lineCount; index++) {
-            const line = doc.lineAt(index);
-            const result = line.text.match(reg);
-            const item = result?.groups?.template;
+            for (let index = 0; index < doc.lineCount; index++) {
+                const line = doc.lineAt(index);
+                const result = line.text.match(reg);
+                const item = result?.groups?.template;
 
-            if (item === null|| item === undefined) {
-                continue;
+                if (item === null || item === undefined) {
+                    continue;
+                }
+
+                const file = await util.getFilePath(item, doc);
+
+                if (file === null) {
+                    continue;
+                }
+
+                const start = new Position(line.lineNumber, line.text.indexOf(item));
+                const end = start.translate(0, item.length);
+                const documentLink = new DocumentLink(new Range(start, end), file);
+                documentLinks.push(documentLink);
             }
 
-            const file = util.getFilePath(item, doc);
-
-            if (file === null) {
-                continue;
-            }
-
-            const start = new Position(line.lineNumber, line.text.indexOf(item));
-            const end = start.translate(0, item.length);
-            const documentLink = new DocumentLink(new Range(start, end), file);
-            documentLinks.push(documentLink);
-        }
-
-        return documentLinks;
+            return resolve(documentLinks);
+        });
     }
 }
