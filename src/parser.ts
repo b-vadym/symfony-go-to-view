@@ -22,22 +22,11 @@ export class ReferenceParser {
     public async isInPositionForCompletion(
         document: vscode.TextDocument,
         position: vscode.Position,
-        templateReferences: Reference[]
+        autocompleteReferences: Reference[]
     ) {
-        const rootAst = this.parse(document.getText());
+        const callAst = this.getLastCall(this.parse(document.getText()), position);
 
-        this.inCall(rootAst, position);
-        const treeAst = this.getCalls();
-
-        const lastAst = treeAst[treeAst.length - 1];
-
-        if (!this.isString(lastAst)) {
-            return false;
-        }
-
-        const callAst = treeAst[treeAst.length - 2];
-
-        if (!this.isCall(callAst)) {
+        if (!callAst) {
             return false;
         }
 
@@ -59,17 +48,10 @@ export class ReferenceParser {
             return false;
         }
 
-        const callPosition = this.locationToVsCodePosition(callIdentifierLoc.start);
-
-
+        const callPosition = this.phpParserLocationToVsCodePosition(callIdentifierLoc.start);
         const callClasses = await this.resolveReference(document, callPosition);
 
-
         if (callClasses === null || callClasses.length === 0) {
-            return false;
-        }
-
-        if (callAst.arguments.length < 1) {
             return false;
         }
 
@@ -82,7 +64,7 @@ export class ReferenceParser {
                 return false;
             }
 
-            return this.inRanger(argument, position);
+            return this.vsCodePositionInPhpParserNode(argument, position);
         });
 
         if (argumentNumber === -1) {
@@ -91,14 +73,14 @@ export class ReferenceParser {
 
         const methodName = callIdentifier.name;
 
-        return templateReferences.some((templateReference) => {
+        return autocompleteReferences.some((autocompleteReference) => {
             for (let index = 0; index < callClasses.length; index++) {
                 const callClass = callClasses[index];
 
                 if (
-                    templateReference.class === callClass
-                    && methodName === templateReference.method
-                    && argumentNumber === templateReference.argumentNumber
+                    autocompleteReference.class === callClass
+                    && methodName === autocompleteReference.method
+                    && argumentNumber === autocompleteReference.argumentNumber
                 ) {
                     return true;
                 }
@@ -121,10 +103,12 @@ export class ReferenceParser {
 
         const classes = [];
 
-        for (let index = 0; index < definitions.length; index++) {
-            const definition = definitions[index];
-
-            const documentSymbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>('vscode.executeDocumentSymbolProvider', definition.targetUri);
+        for (let i = 0; i < definitions.length; i++) {
+            const definition = definitions[i];
+            const documentSymbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
+                'vscode.executeDocumentSymbolProvider',
+                definition.targetUri
+            );
             let namespace = '';
 
             for (let j = 0; j < documentSymbols.length; j++) {
@@ -135,7 +119,11 @@ export class ReferenceParser {
                     namespace += namespace ? "\\" : "";
                 }
 
-                if (documentSymbol.kind === vscode.SymbolKind.Class) {
+                if (
+                    documentSymbol.kind === vscode.SymbolKind.Class
+                    && documentSymbol.range.contains(definition.targetRange)
+                ) {
+
                     classes.push(namespace + documentSymbol.name);
                 }
             }
@@ -144,41 +132,39 @@ export class ReferenceParser {
         return classes;
     }
 
-
-    private calls: phpParser.Node[] = [];
     private parse(code: string): phpParser.Program {
         return parser.parseEval(code.replace("<?php", ""));
     }
 
-    private getCalls(): phpParser.Node[] {
-        return this.calls;
-    }
+    private getLastCall(ast: phpParser.Node, position: vscode.Position): phpParser.Call | null {
+        let lastCallAst: phpParser.Call | null = null;
 
-    private inCall(ast: phpParser.Node, position: vscode.Position) {
-        if (this.inRanger(ast, position)) {
-            try {
-                this.calls.push(ast);
-            } catch (err) {
-                console.error(ast);
-            }
-        }
-
-        try {
-            Object.entries(ast).forEach(([_, node]) => {
-                if (node instanceof Object) {
-                    try {
-                        this.inCall(node, position);
-                    } catch (err) { }
+        const lastAstCallFinder = (node: phpParser.Node) => {
+            if (this.vsCodePositionInPhpParserNode(node, position) && this.isCall(node)) {
+                try {
+                    lastCallAst = node;
+                } catch (err) {
+                    console.error(node);
                 }
-            });
-        } catch (err) { }
+            }
+
+            try {
+                Object.entries(node).forEach(([_, childNode]) => {
+                    if (node instanceof Object) {
+                        try {
+                            lastAstCallFinder(childNode);
+                        } catch (err) { }
+                    }
+                });
+            } catch (err) { }
+        };
+
+        lastAstCallFinder(ast);
+
+        return lastCallAst;
     }
 
-    public isCall(node: phpParser.Node): node is phpParser.Call {
-        return node.kind === 'call';
-    }
-
-    public inRanger(ast: phpParser.Node, position: vscode.Position): boolean {
+    public vsCodePositionInPhpParserNode(ast: phpParser.Node, position: vscode.Position): boolean {
         const astLocation = ast.loc;
 
         if (!astLocation) {
@@ -186,14 +172,14 @@ export class ReferenceParser {
         }
 
         const range = new vscode.Range(
-            this.locationToVsCodePosition(astLocation.start),
-            this.locationToVsCodePosition(astLocation.end)
+            this.phpParserLocationToVsCodePosition(astLocation.start),
+            this.phpParserLocationToVsCodePosition(astLocation.end)
         );
 
         return range.contains(position);
     }
 
-    public locationToVsCodePosition(position: phpParser.Position): vscode.Position {
+    public phpParserLocationToVsCodePosition(position: phpParser.Position): vscode.Position {
         return new vscode.Position(position.line - 1, position.column);
     }
 
@@ -203,6 +189,10 @@ export class ReferenceParser {
 
     public isIdentifier(node: phpParser.Node): node is phpParser.Identifier {
         return node.kind === 'identifier';
+    }
+
+    public isCall(node: phpParser.Node): node is phpParser.Call {
+        return node.kind === 'call';
     }
 
     public isString(node: phpParser.Node): node is phpParser.String {
