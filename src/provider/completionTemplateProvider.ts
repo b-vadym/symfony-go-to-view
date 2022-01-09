@@ -1,7 +1,6 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import * as fs from "fs";
 import { getAllViews } from '../utils';
 import { ReferenceParser, Reference } from '../parser';
 
@@ -18,11 +17,6 @@ export default class CompletionTemplateProvider implements vscode.CompletionItem
         {
             class: "Symfony\\Bundle\\FrameworkBundle\\Controller\\AbstractController",
             method: "renderView",
-            argumentNumber: 0
-        },
-        {
-            class: "Symfony\\Bridge\\Twig\\Mime\\TemplatedEmail",
-            method: "htmlTemplate",
             argumentNumber: 0
         },
         {
@@ -68,7 +62,12 @@ export default class CompletionTemplateProvider implements vscode.CompletionItem
             return [];
         }
 
-        return this.views.map(path => new vscode.CompletionItem(path, vscode.CompletionItemKind.Constant));
+        return this.views.map(path => {
+            const completionItem = new vscode.CompletionItem(path, vscode.CompletionItemKind.Constant);
+            completionItem.sortText = this.getPathSortPrefix(path) + path;
+
+            return completionItem;
+        });
     }
 
     onChange() {
@@ -84,5 +83,15 @@ export default class CompletionTemplateProvider implements vscode.CompletionItem
 
     async loadViews() {
         this.views = await getAllViews();
+    }
+
+    private getPathSortPrefix(path: string): string {
+        if (path.startsWith('@!')) {
+            return '3';
+        } else if (path.startsWith('@')) {
+            return '2';
+        }
+
+        return '1';
     }
 }
