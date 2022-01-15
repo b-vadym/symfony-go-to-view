@@ -65,6 +65,10 @@ export default class CompletionTemplateProvider implements vscode.CompletionItem
         return this.views.map(path => {
             const completionItem = new vscode.CompletionItem(path, vscode.CompletionItemKind.Constant);
             completionItem.sortText = this.getPathSortPrefix(path) + path;
+            completionItem.range = document.getWordRangeAtPosition(
+                position,
+                /[\w\d\-_\.\@!:\\\/]+/g
+            );
 
             return completionItem;
         });
