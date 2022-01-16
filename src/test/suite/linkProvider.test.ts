@@ -2,17 +2,14 @@ import * as assert from 'assert';
 import { before } from 'mocha';
 import { setTimeout } from 'timers';
 
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
 import * as vscode from 'vscode';
-// import * as myExtension from '../../extension';
 
 suite('Link Orivider Test Suite', function () {
     this.timeout(5500);
 
-    // before(function (done) {
-    //     setTimeout(done, 5000);
-    // });
+    before(function (done) {
+        setTimeout(done, 5000);
+    });
 
     test('Has link in php code', async () => {
         const document = await getFileByName('src/Controller/HomePageController.php');
