@@ -5,10 +5,10 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 suite('Link Provider Test Suite', function () {
-    this.timeout(5500);
+    this.timeout(15500);
 
     before(function (done) {
-        setTimeout(done, 5000);
+        setTimeout(done, 10000);
     });
 
     test('Has link in php code', async () => {
@@ -54,7 +54,7 @@ async function getFileByName(name: string): Promise<vscode.TextDocument> {
     const textDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(getWorkspaceFolder(), name)));
 
     const textEditor = await vscode.window.showTextDocument(textDocument);
-    await wait(1000);
+    await wait(2000);
 
     return textEditor.document;
 }
