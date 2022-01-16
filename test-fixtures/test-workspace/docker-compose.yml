@@ -1,0 +1,18 @@
+version: "3.7"
+services:
+  php:
+    build:
+      args:
+        uid: 1000
+      context: ./
+      dockerfile: docker/php/Dockerfile
+    restart: unless-stopped
+    working_dir: /var/www/
+    environment:
+      TERM: xterm-256color
+    volumes:
+      - ./:/var/www
+      - composer-cache:/home/app/.composer/
+
+volumes:
+    composer-cache: ~
