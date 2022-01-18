@@ -20,6 +20,10 @@ async function main() {
             encoding: 'utf-8',
             stdio: 'inherit'
         });
+        cp.spawnSync(cliPath, ['--install-extension', 'mblode.twig-language-2'], {
+            encoding: 'utf-8',
+            stdio: 'inherit'
+        });
         // Download VS Code, unzip it and run the integration test
         await runTests({
             extensionDevelopmentPath,
