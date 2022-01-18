@@ -8,7 +8,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
@@ -18,7 +18,10 @@ jobs:
       with:
         node-version: 14.x
     - run: yarn install
-    - run: xvfb-run -a yarn test
+    - run: |
+        sudo apt-get install -y xvfb libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xinput0 libxcb-xfixes0
+        # start xvfb in the background
+        xvfb-run -a yarn test
       if: runner.os == 'Linux'
     - run: yarn test
       if: runner.os != 'Linux'
