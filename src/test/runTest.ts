@@ -12,7 +12,7 @@ async function main() {
         // Passed to --extensionTestsPath
         const extensionTestsPath = path.resolve(__dirname, './suite/index');
         const testWorkspace = path.resolve(__dirname, '../../test-fixtures/test-workspace');
-        const vscodeExecutablePath = await downloadAndUnzipVSCode('insiders');
+        const vscodeExecutablePath = await downloadAndUnzipVSCode('1.63.0');
         const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
 
         // Use cp.spawn / cp.exec for custom setup
