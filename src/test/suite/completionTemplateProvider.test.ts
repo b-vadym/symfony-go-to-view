@@ -56,7 +56,7 @@ async function getFileByName(name: string): Promise<vscode.TextDocument> {
     const textDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(getWorkspaceFolder(), name)));
 
     const textEditor = await vscode.window.showTextDocument(textDocument);
-    await wait(2000);
+    await wait(6000);
 
     return textEditor.document;
 }
