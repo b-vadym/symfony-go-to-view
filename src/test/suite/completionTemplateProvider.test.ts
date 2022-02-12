@@ -25,12 +25,14 @@ suite('Completion template provider test suite', function () {
             {
                 insertText: 'base.html.twig',
                 label: 'base.html.twig',
-                sortText: '1base.html.twig',
+                sortText: '_1base.html.twig',
+                kind: vscode.CompletionItemKind.Constant,
             },
             {
                 insertText: 'homepage.html.twig',
                 label: 'homepage.html.twig',
-                sortText: '1homepage.html.twig',
+                sortText: '_1homepage.html.twig',
+                kind: vscode.CompletionItemKind.Constant,
             },
         ];
         expectedCompletions.forEach((expectedCompletionItem, key) => {
@@ -43,10 +45,13 @@ suite('Completion template provider test suite', function () {
                 expectedCompletionItem.label,
                 completionItem.label,
             );
-
             assert.strictEqual(
                 expectedCompletionItem.sortText,
                 completionItem.sortText,
+            );
+            assert.strictEqual(
+                expectedCompletionItem.kind,
+                completionItem.kind,
             );
         });
     });

@@ -91,11 +91,11 @@ export default class CompletionTemplateProvider implements vscode.CompletionItem
 
     private getPathSortPrefix(path: string): string {
         if (path.startsWith('@!')) {
-            return '3';
+            return '_3';
         } else if (path.startsWith('@')) {
-            return '2';
+            return '_2';
         }
 
-        return '1';
+        return '_1';
     }
 }
